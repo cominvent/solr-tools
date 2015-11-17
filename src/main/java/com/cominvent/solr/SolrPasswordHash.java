@@ -1,10 +1,12 @@
 package com.cominvent.solr;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.solr.security.Sha256AuthenticationProvider;
 
 public class SolrPasswordHash {
     public static void main(String[] args) {
@@ -26,7 +28,7 @@ public class SolrPasswordHash {
     }
 
     public static String createPasswordHash(String password, String saltBase64) {
-        return Sha256AuthenticationProvider.sha256(password, saltBase64) + " " + saltBase64;
+        return sha256(password, saltBase64) + " " + saltBase64;
     }
 
     public static String generateRandomSalt() {
@@ -38,5 +40,26 @@ public class SolrPasswordHash {
 
     public static String base64(String s) {
         return Base64.encodeBase64String(s.getBytes());
+    }
+
+    /**
+     * Copied from org.apache.solr.security.Sha256AuthenticationProvider
+     */
+    public static String sha256(String password, String saltKey) {
+      MessageDigest digest;
+      try {
+        digest = MessageDigest.getInstance("SHA-256");
+      } catch (NoSuchAlgorithmException e) {
+        return null;//should not happen
+      }
+      if (saltKey != null) {
+        digest.reset();
+        digest.update(Base64.decodeBase64(saltKey));
+      }
+
+      byte[] btPass = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+      digest.reset();
+      btPass = digest.digest(btPass);
+      return Base64.encodeBase64String(btPass);
     }
 }
