@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+# Licensed under the Apache License 2.0: http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 JAR_CORE_5=lucene-core-5.5.1.jar
 JAR_CORE_5_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/5.5.1/lucene-core-5.5.1.jar
 JAR_BACK_5=lucene-backward-codecs-5.5.1.jar

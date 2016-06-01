@@ -31,3 +31,7 @@ Simple command line tool to generate a password hash for `security.json`
     HZtl83vopLyZfOpGedEQveAwvVdAQ1Ukr6dDJPEfs/w= MTIz
     Example usage:
     "credentials":{"myUser":"HZtl83vopLyZfOpGedEQveAwvVdAQ1Ukr6dDJPEfs/w= MTIz"}
+    
+# License
+
+All scripts © Cominvent AS and licensed under the Apache License v2.0
