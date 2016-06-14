@@ -26,7 +26,7 @@ if [ X$1 == X ] ; then
 	echo "Script to Upgrade old indices from 4.x and 5.x to 6.x format, so it can be used with Solr 6.x or 7.x"
 	echo "Usage: $0 [-s] <indexdata-root>"
 	echo
-	echo "Example: $0 /var/lib/solr"
+	echo "Example: $0 /var/solr"
 	echo "Please run the tool only on a cold index (no Solr running)"
 	echo "The script leaves a backup in <indexdata-root>/<core>/data/index_backup_<version>.tgz. Use -s to skip backup"
 	echo "Requires wget or curl to download dependencies"
@@ -103,10 +103,6 @@ else
         abspath=$(cd "$(dirname "$c")"; pwd)/$(basename "$c")
         echo "Upgrading core $name - $abspath"
         upgrade $c/data/index
-        if [[ "dn" == "$name" ]] ; then
-            echo "Upgrading autosuggest index $name - wine_suggest_index"
-            upgrade $c/data/wine_suggest_index
-        fi
       else
         echo "No index folder found for $name"
       fi
