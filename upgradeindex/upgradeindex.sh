@@ -18,15 +18,38 @@ JAR_BACK_6=lucene-backward-codecs-6.0.1.jar
 JAR_BACK_6_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/6.0.1/lucene-backward-codecs-6.0.1.jar
 BASEDIR=$(dirname "$0")
 BACKUP=true
-if [ "$1" == "-s" ] ; then
-    unset BACKUP
-    shift
-fi
+TARGET=6
+while getopts ":st:" opt; do
+  case $opt in
+    s)
+      unset BACKUP
+      ;;
+    t)
+      TARGET=$OPTARG
+      if [ $TARGET -ge 5 ] && [ $TARGET -le 6 ] ; then
+        echo "Target version is $TARGET"
+      else
+        echo "Invalid target version $TARGET, must be 5 or 6"
+        exit 1
+      fi
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
 if [ X$1 == X ] ; then
-	echo "Script to Upgrade old indices from 4.x and 5.x to 6.x format, so it can be used with Solr 6.x or 7.x"
-	echo "Usage: $0 [-s] <indexdata-root>"
+	echo "Script to Upgrade old indices from 4.x -> 5.x -> 6.x format, so it can be used with Solr 6.x or 7.x"
+	echo "Usage: $0 [-s] [-t target-ver] <indexdata-root>"
 	echo
-	echo "Example: $0 /var/solr"
+	echo "Example: $0 -t 5 /var/solr"
 	echo "Please run the tool only on a cold index (no Solr running)"
 	echo "The script leaves a backup in <indexdata-root>/<core>/data/index_backup_<version>.tgz. Use -s to skip backup"
 	echo "Requires wget or curl to download dependencies"
@@ -67,7 +90,7 @@ function upgrade() {
       return
   fi
   majorVer=$(echo $ver|cut -c 1)
-  if [ $majorVer -lt 6 ] ; then
+  if [ $majorVer -lt $TARGET ] ; then
       if [[ $BACKUP ]] ; then
         file=$(basename $INDEXDIR)
         dir=$(dirname $INDEXDIR)
@@ -80,17 +103,21 @@ function upgrade() {
   else
       CP="$BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6"
   fi
-  echo "- Index version is $ver, checking integrity"
-  java -cp $CP org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "check integrity"
-  if [ $majorVer -lt 5 ] ; then
-      echo "- Upgrading 4.x -> 5.x"
-      java -cp $BASEDIR/$JAR_CORE_5:$BASEDIR/$JAR_BACK_5 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
-  fi
-  if [ $majorVer -lt 6 ] ; then
-      echo "- Upgrading 5.x -> 6.x"
-      java -cp $BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
-  else
+  if [ $majorVer -ge $TARGET ] ; then
       echo "- Already on version $ver, not upgrading"
+  else
+      echo "- Index version is $ver, checking integrity"
+      java -cp $CP org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "check integrity"
+      if [ $majorVer -lt 5 ] && [ $TARGET -ge 5 ] ; then
+          echo "- Upgrading 4.x -> 5.x"
+          java -cp $BASEDIR/$JAR_CORE_5:$BASEDIR/$JAR_BACK_5 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
+          majorVer=5
+      fi
+      if [ $majorVer -lt 6 ] && [ $TARGET -ge 6 ] ; then
+          echo "- Upgrading 5.x -> 6.x"
+          java -cp $BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
+          majorVer=6
+      fi
   fi
 }
 
@@ -101,7 +128,7 @@ else
       if [[ -d $c/data/index ]]; then
         name=$(echo $c | sed -e 's/.*\///g')
         abspath=$(cd "$(dirname "$c")"; pwd)/$(basename "$c")
-        echo "Upgrading core $name - $abspath"
+        echo "Core $name - $abspath"
         upgrade $c/data/index
       else
         echo "No index folder found for $name"
