@@ -125,11 +125,13 @@ if [[ "X$CORES" == "X" ]] ; then
   echo "No indices found on path $DIR"
 else
     for c in $CORES ; do
-      if [[ -d $c/data/index ]]; then
+      if find $c/data -maxdepth 1 -type d -name 'index*' 1> /dev/null 2>&1; then
         name=$(echo $c | sed -e 's/.*\///g')
         abspath=$(cd "$(dirname "$c")"; pwd)/$(basename "$c")
         echo "Core $name - $abspath"
-        upgrade $c/data/index
+        find $c/data -maxdepth 1 -type d -name 'index*' | while read indexDir; do
+	      upgrade "$indexDir"
+        done
       else
         echo "No index folder found for $name"
       fi
