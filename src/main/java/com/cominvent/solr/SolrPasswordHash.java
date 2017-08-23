@@ -14,14 +14,14 @@ public class SolrPasswordHash {
         String salt;
 
         if (args.length == 0) {
-            System.out.println("Usage: java SolrPasswordHash <password>");
+            System.out.println("Usage: java SolrPasswordHash <password> [<salt>]");
             System.exit(1);
         }
 
         pass = args[0];
         salt = args.length > 1 ? args[1] : generateRandomSalt();
 
-        System.out.println("Generating password hash for "+pass+" and salt "+salt+":");
+        System.out.println("Generating password hash for password "+pass+" and salt "+salt+":");
         String val = createPasswordHash(args[0], Base64.encodeBase64String(salt.getBytes()));
         System.out.println(val);
         System.out.println("Example usage:\n"+"\"credentials\":{\"myUser\":\""+val+"\"}");

@@ -4,6 +4,8 @@ Author: Jan Høydahl @ Cominvent AS
 
 Collection of simple tools for Solr.
 
+[![Travis CI Build Status](https://travis-ci.org/cominvent/solr-tools.png)](https://travis-ci.org/cominvent/solr-tools)
+
 ## upgradeindex.sh
 Bash script to upgrade an entire Solr index from 4.x or 5.x to 6.x so it can be read by Solr6.x or Solr 7.x. See [README](./upgradeindex/README.md)
 
