@@ -8,14 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAR_CORE_5=lucene-core-5.5.4.jar
-JAR_CORE_5_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/5.5.4/lucene-core-5.5.4.jar
-JAR_BACK_5=lucene-backward-codecs-5.5.4.jar
-JAR_BACK_5_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/5.5.4/lucene-backward-codecs-5.5.4.jar
-JAR_CORE_6=lucene-core-6.6.0.jar
-JAR_CORE_6_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/6.6.0/lucene-core-6.6.0.jar
-JAR_BACK_6=lucene-backward-codecs-6.6.0.jar
-JAR_BACK_6_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/6.6.0/lucene-backward-codecs-6.6.0.jar
+VERSION_5=5.5.4
+VERSION_6=6.6.0
+
+JAR_CORE_5=lucene-core-$VERSION_5.jar
+JAR_CORE_5_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/$VERSION_5/lucene-core-$VERSION_5.jar
+JAR_BACK_5=lucene-backward-codecs-$VERSION_5.jar
+JAR_BACK_5_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/$VERSION_5/lucene-backward-codecs-$VERSION_5.jar
+JAR_CORE_6=lucene-core-$VERSION_6.jar
+JAR_CORE_6_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/$VERSION_6/lucene-core-$VERSION_6.jar
+JAR_BACK_6=lucene-backward-codecs-$VERSION_6.jar
+JAR_BACK_6_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/$VERSION_6/lucene-backward-codecs-$VERSION_6.jar
 BASEDIR=$(dirname "$0")
 BACKUP=true
 TARGET=6
