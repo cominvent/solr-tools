@@ -8,9 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+VERSION_4=4.10.4
 VERSION_5=5.5.4
 VERSION_6=6.6.0
 
+JAR_CORE_4=lucene-core-$VERSION_4.jar
+JAR_CORE_4_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/$VERSION_4/lucene-core-$VERSION_4.jar
+JAR_BACK_4=lucene-backward-codecs-$VERSION_4.jar
+JAR_BACK_4_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/$VERSION_4/lucene-backward-codecs-$VERSION_4.jar
 JAR_CORE_5=lucene-core-$VERSION_5.jar
 JAR_CORE_5_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/$VERSION_5/lucene-core-$VERSION_5.jar
 JAR_BACK_5=lucene-backward-codecs-$VERSION_5.jar
@@ -29,7 +34,7 @@ while getopts ":st:" opt; do
       ;;
     t)
       TARGET=$OPTARG
-      if [ $TARGET -ge 5 ] && [ $TARGET -le 6 ] ; then
+      if [ $TARGET -ge 4 ] && [ $TARGET -le 6 ] ; then
         echo "Target version is $TARGET"
       else
         echo "Invalid target version $TARGET, must be 5 or 6"
@@ -49,17 +54,17 @@ done
 shift $(($OPTIND - 1))
 
 if [ X$1 == X ] ; then
-	echo "Script to Upgrade old indices from 4.x -> 5.x -> 6.x format, so it can be used with Solr 6.x or 7.x"
+	echo "Script to Upgrade old indices from 3.x -> 4.x -> 5.x -> 6.x format, so it can be used with Solr 6.x or 7.x"
 	echo "Usage: $0 [-s] [-t target-ver] <indexdata-root>"
 	echo
-	echo "Example: $0 -t 5 /var/solr"
+	echo "Example: $0 -t 6 /var/solr"
 	echo "Please run the tool only on a cold index (no Solr running)"
 	echo "The script leaves a backup in <indexdata-root>/<core>/data/index_backup_<version>.tgz. Use -s to skip backup"
 	echo "Requires wget or curl to download dependencies"
 	exit
 fi
 
-if [[ ! -f ./$JAR_CORE_5 ]] ; then
+if [[ ! -f ./$JAR_CORE_4 ]] ; then
     curl --version >/dev/null
     if [[ $? -eq 0 ]] ; then
         tool="curl -O -# "
@@ -72,7 +77,7 @@ if [[ ! -f ./$JAR_CORE_5 ]] ; then
             exit 2
         fi
     fi
-    for f in $JAR_BACK_5_URL $JAR_BACK_6_URL $JAR_CORE_5_URL $JAR_CORE_6_URL ; do
+    for f in $JAR_BACK_4_URL $JAR_BACK_5_URL $JAR_BACK_6_URL $JAR_CORE_4_URL $JAR_CORE_5_URL $JAR_CORE_6_URL ; do
         echo "Downloading $f"
         $tool $f
     done
@@ -89,7 +94,10 @@ function upgrade() {
       ver=$(java -cp $BASEDIR/$JAR_CORE_5:$BASEDIR/$JAR_BACK_5  org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "   version="|sed -e 's/.*=//g'|head -1)
   fi
   if [ X$ver == X ] ; then
-      echo "- Empty index?"
+      ver=$(java -cp $BASEDIR/$JAR_CORE_4:$BASEDIR/$JAR_BACK_4  org.apache.lucene.index.CheckIndex -fix $INDEXDIR|grep "   version="|sed -e 's/.*=//g'|head -1)
+  fi
+  if [ X$ver == X ] ; then
+      echo "- Empty index or unsupported version: $ver"
       return
   fi
   majorVer=$(echo $ver|cut -c 1)
@@ -101,7 +109,9 @@ function upgrade() {
         tar -C "$dir" -czf "$dir/${file}_backup_$ver.tgz" "$file"
       fi
   fi
-  if [ $majorVer -lt 5 ] ; then
+  if [ $majorVer -lt 4 ] ; then
+      CP="$BASEDIR/$JAR_CORE_4:$BASEDIR/$JAR_BACK_4"
+  elif [ $majorVer -lt 5 ] ; then
       CP="$BASEDIR/$JAR_CORE_5:$BASEDIR/$JAR_BACK_5"
   else
       CP="$BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6"
@@ -111,6 +121,11 @@ function upgrade() {
   else
       echo "- Index version is $ver, checking integrity"
       java -cp $CP org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "check integrity"
+      if [ $majorVer -lt 4 ] && [ $TARGET -ge 4 ] ; then
+          echo "- Upgrading 3.x -> 4.x"
+          java -cp $BASEDIR/$JAR_CORE_4:$BASEDIR/$JAR_BACK_4 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
+          majorVer=4
+      fi
       if [ $majorVer -lt 5 ] && [ $TARGET -ge 5 ] ; then
           echo "- Upgrading 4.x -> 5.x"
           java -cp $BASEDIR/$JAR_CORE_5:$BASEDIR/$JAR_BACK_5 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
