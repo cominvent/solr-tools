@@ -11,6 +11,7 @@
 VERSION_4=4.10.4
 VERSION_5=5.5.4
 VERSION_6=6.6.0
+VERSION_7=7.6.0
 
 JAR_CORE_4=lucene-core-$VERSION_4.jar
 JAR_CORE_4_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/$VERSION_4/lucene-core-$VERSION_4.jar
@@ -24,6 +25,10 @@ JAR_CORE_6=lucene-core-$VERSION_6.jar
 JAR_CORE_6_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/$VERSION_6/lucene-core-$VERSION_6.jar
 JAR_BACK_6=lucene-backward-codecs-$VERSION_6.jar
 JAR_BACK_6_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/$VERSION_6/lucene-backward-codecs-$VERSION_6.jar
+JAR_CORE_7=lucene-core-$VERSION_7.jar
+JAR_CORE_7_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-core/$VERSION_7/lucene-core-$VERSION_7.jar
+JAR_BACK_7=lucene-backward-codecs-$VERSION_7.jar
+JAR_BACK_7_URL=http://central.maven.org/maven2/org/apache/lucene/lucene-backward-codecs/$VERSION_7/lucene-backward-codecs-$VERSION_7.jar
 BASEDIR=$(dirname "$0")
 BACKUP=true
 TARGET=6
@@ -34,7 +39,7 @@ while getopts ":st:" opt; do
       ;;
     t)
       TARGET=$OPTARG
-      if [ $TARGET -ge 4 ] && [ $TARGET -le 6 ] ; then
+      if [ $TARGET -ge 4 ] && [ $TARGET -le 7 ] ; then
         echo "Target version is $TARGET"
       else
         echo "Invalid target version $TARGET, must be 5 or 6"
@@ -54,7 +59,7 @@ done
 shift $(($OPTIND - 1))
 
 if [ X$1 == X ] ; then
-	echo "Script to Upgrade old indices from 3.x -> 4.x -> 5.x -> 6.x format, so it can be used with Solr 6.x or 7.x"
+	echo "Script to Upgrade old indices from 3.x -> 4.x -> 5.x -> 6.x -> 7.x format, so it can be used with Solr 6.x or 7.x"
 	echo "Usage: $0 [-s] [-t target-ver] <indexdata-root>"
 	echo
 	echo "Example: $0 -t 6 /var/solr"
@@ -77,7 +82,7 @@ if [[ ! -f ./$JAR_CORE_4 ]] ; then
             exit 2
         fi
     fi
-    for f in $JAR_BACK_4_URL $JAR_BACK_5_URL $JAR_BACK_6_URL $JAR_CORE_4_URL $JAR_CORE_5_URL $JAR_CORE_6_URL ; do
+    for f in $JAR_BACK_4_URL $JAR_BACK_5_URL $JAR_BACK_6_URL $JAR_BACK_7_URL $JAR_CORE_4_URL $JAR_CORE_5_URL $JAR_CORE_6_URL $JAR_CORE_7_URL ; do
         echo "Downloading $f"
         $tool $f
     done
@@ -89,7 +94,10 @@ CORES=$(for a in `find $DIR -name data`; do dirname $a; done);
 
 function upgrade() {
   INDEXDIR=$1
-  ver=$(java -cp $BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6 org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "   version="|sed -e 's/.*=//g'|head -1)
+  ver=$(java -cp $BASEDIR/$JAR_CORE_7:$BASEDIR/$JAR_BACK_7  org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "   version="|sed -e 's/.*=//g'|head -1)
+  if [ X$ver == X ] ; then
+      ver=$(java -cp $BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6  org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "   version="|sed -e 's/.*=//g'|head -1)
+  fi
   if [ X$ver == X ] ; then
       ver=$(java -cp $BASEDIR/$JAR_CORE_5:$BASEDIR/$JAR_BACK_5  org.apache.lucene.index.CheckIndex -fast $INDEXDIR|grep "   version="|sed -e 's/.*=//g'|head -1)
   fi
@@ -113,8 +121,10 @@ function upgrade() {
       CP="$BASEDIR/$JAR_CORE_4:$BASEDIR/$JAR_BACK_4"
   elif [ $majorVer -lt 5 ] ; then
       CP="$BASEDIR/$JAR_CORE_5:$BASEDIR/$JAR_BACK_5"
-  else
+  elif [ $majorVer -lt 6 ] ; then
       CP="$BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6"
+   else
+      CP="$BASEDIR/$JAR_CORE_7:$BASEDIR/$JAR_BACK_7"
   fi
   if [ $majorVer -ge $TARGET ] ; then
       echo "- Already on version $ver, not upgrading"
@@ -135,6 +145,11 @@ function upgrade() {
           echo "- Upgrading 5.x -> 6.x"
           java -cp $BASEDIR/$JAR_CORE_6:$BASEDIR/$JAR_BACK_6 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
           majorVer=6
+      fi
+      if [ $majorVer -lt 7 ] && [ $TARGET -ge 7 ] ; then
+          echo "- Upgrading 6.x -> 7.x"
+          java -cp $BASEDIR/$JAR_CORE_7:$BASEDIR/$JAR_BACK_7 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
+          majorVer=7
       fi
   fi
 }
