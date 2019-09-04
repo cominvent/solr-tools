@@ -163,7 +163,7 @@ function upgrade() {
       fi
       if [ $majorVer -lt 8 ] && [ $TARGET -ge 8 ] ; then
           echo "- Upgrading 7.x -> 8.x"
-          java -cp $BASEDIR/$JAR_CORE_7:$BASEDIR/$JAR_BACK_7 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
+          java -cp $BASEDIR/$JAR_CORE_8:$BASEDIR/$JAR_BACK_8 org.apache.lucene.index.IndexUpgrader -delete-prior-commits $INDEXDIR
           majorVer=8
       fi
   fi
