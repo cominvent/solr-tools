@@ -7,7 +7,7 @@ Collection of simple tools for Solr.
 [![Travis CI Build Status](https://travis-ci.org/cominvent/solr-tools.png)](https://travis-ci.org/cominvent/solr-tools)
 
 ## upgradeindex.sh
-Bash script to upgrade an entire Solr index from 4.x or 5.x to 6.x so it can be read by Solr6.x or Solr 7.x. See [README](./upgradeindex/README.md)
+Bash script to upgrade an entire Solr index from 4.x or 5.x or 6.x or 7.x to 8.x so it can be read by Solr 6.x, Solr 7.x or Solr 8.x. See [README](./upgradeindex/README.md)
 
 ## SolrPasswordHash
 Simple command line tool to generate a password hash for `security.json`

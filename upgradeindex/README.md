@@ -1,10 +1,10 @@
 # upgradeindex.sh
 
-Bash script to upgrade an entire Solr index from 3.x -> 4.x -> 5.x -> 6.x so it can be read by Solr6.x or Solr 7.x
+Bash script to upgrade an entire Solr index from 3.x -> 4.x -> 5.x -> 6.x -> 7.x -> 8.x so it can be read by Solr6.x, Solr 7.x or Solr 8.x
 
 ## Usage:
 
-    Script to Upgrade old indices from 3.x -> 4.x -> 5.x -> 6.x format, so it can be used with Solr 6.x or 7.x
+    Script to Upgrade old indices from 3.x -> 4.x -> 5.x -> 6.x -> 7.x -> 8.x format, so it can be used with Solr 6.x, 7.x or 8.x
     Usage: ./upgradeindex.sh [-s] [-t target-ver] <indexdata-root>
     
     Example: ./upgradeindex.sh -t 6 /var/solr
